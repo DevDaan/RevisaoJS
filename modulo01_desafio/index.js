@@ -34,7 +34,6 @@ server.get('/projects/:id', (req, res) =>{
 })
 
 
-
 server.put('/projects/:id', (req, res) =>{
   const {title} = req.body
   const {id} = req.params
@@ -45,6 +44,14 @@ server.put('/projects/:id', (req, res) =>{
 })
 
 
+server.delete('/projects/:id', (req, res) =>{
+
+  const {id} = req.params
+
+  projetos.splice(id - 1, 1)
+
+  return res.json({Message: `Projeto com o id ${id} deletado com sucesso!`})
+})
 
 server.listen(3000, () =>{
   console.log("servidor rodando na porta 3000")
