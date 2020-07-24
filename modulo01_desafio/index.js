@@ -7,6 +7,15 @@ server.use(express.json())
 const projects = []
 
 
+//criando um middleware global para saber quantas requisiçoes foram feitas
+server.use((req, res, next) =>{
+
+  console.count('Numero de requisições')
+
+  next();
+})
+
+
 //criando o middleware de rota para verificar se um produto existe
 function checkProjectInArray(req, res, next){
   const project = projects[req.params.id - 1]
@@ -15,7 +24,7 @@ function checkProjectInArray(req, res, next){
     return res.status(400).json({error: "Project not found!"})
   } 
   req.project = project
-  
+
   next();
 }
 
