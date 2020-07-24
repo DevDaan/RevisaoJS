@@ -7,12 +7,26 @@ server.use(express.json())
 const projects = []
 
 
+//criando o middleware de rota para verificar se um produto existe
+function checkProjectInArray(req, res, next){
+  const project = projects[req.params.id - 1]
 
+  if(!project){
+    return res.status(400).json({error: "Project not found!"})
+  } 
+  req.project = project
+  
+  next();
+}
+
+
+// rota para listar todos os projetos
 server.get('/projects', (req, res) =>{
   res.json(projects)
 })
 
 
+//rota para inserir um novo projeto no array
 server.post('/projects', (req, res) =>{
   const {id, title} = req.body
   
@@ -27,14 +41,17 @@ server.post('/projects', (req, res) =>{
 
 
 
-server.get('/projects/:id', (req, res) =>{
+// rota para listar um projeto especifico
+server.get('/projects/:id', checkProjectInArray, (req, res) =>{
   const {id} = req.params
 
-  return res.json(projects[id - 1])
+  return res.json(req.project)
 })
 
 
-server.put('/projects/:id', (req, res) =>{
+
+// rota para alterar o titulo de um projeto especifico
+server.put('/projects/:id',checkProjectInArray, (req, res) =>{
   const {title} = req.body
   const {id} = req.params
 
@@ -44,7 +61,8 @@ server.put('/projects/:id', (req, res) =>{
 })
 
 
-server.delete('/projects/:id', (req, res) =>{
+//rota para apagar um projeto especifico
+server.delete('/projects/:id',checkProjectInArray, (req, res) =>{
 
   const {id} = req.params
 
@@ -54,7 +72,8 @@ server.delete('/projects/:id', (req, res) =>{
 })
 
 
-server.post('/projects/:id/tasks', (req, res) =>{
+// rota para adicionar uma task à um projeto
+server.post('/projects/:id/tasks',checkProjectInArray, (req, res) =>{
   const {id} = req.params
   const {title} = req.body
 
