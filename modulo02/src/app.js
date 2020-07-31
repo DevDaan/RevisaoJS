@@ -1,28 +1,26 @@
-import express from 'express'
-import routes from './routes'
+import express from 'express';
+import routes from './routes';
 
-class App{
-
+class App {
   // constructors iniciam automaticamente quando a classe é chamada
-  constructor(){
-    //é a mesma coisa que app = express()
-    this.server = express()
+  constructor() {
+    // é a mesma coisa que app = express()
+    this.server = express();
 
+    this.middlewares();
 
-    this.middlewares()
-
-    this.routes()
+    this.routes();
   }
 
-  //Aqui vão todos os middlewares da aplicação
+  // Aqui vão todos os middlewares da aplicação
 
-  middlewares(){
-    this.server.use(express.json())
+  middlewares() {
+    this.server.use(express.json());
   }
 
-  routes(){
-    this.server.use(routes)
+  routes() {
+    this.server.use(routes);
   }
 }
 
-export default new App().server
+export default new App().server;
