@@ -9,7 +9,7 @@ PARA QUE SERVE :
 O Docker nos ajuda a controlar os serviços externos da nossa aplicação.
 
 
-COMO FUNCIONA ? 
+COMO FUNCIONA ?
 
 O docker tem varias funções, dentre elas a criação de ambientes isolados(container). Esses ambientes isolados  são ambientes que não interferem no funcionamento de outras tecnologias dentro do nosso servidor.
 
@@ -42,12 +42,12 @@ Principais conceitos do docker.
 
 
 
-- Docker Registry (Docker Hub) - É onde encontramos essas imagens para utilizar no docker. 
+- Docker Registry (Docker Hub) - É onde encontramos essas imagens para utilizar no docker.
 
 - Dockerfile - É a receita para a gente montar a nossa própria imagem e inclui-lá no docker registry. O dockerfile define a receita  (código node) para a nossa aplicação funcionar totalmente do zero.
 
 
-Ex.: 
+Ex.:
 
 //  Partimos de uma imagem existente
 
@@ -63,7 +63,7 @@ COPY . ./
 RUN yarn
 
 
-// Qual porta queremos expor ? 
+// Qual porta queremos expor ?
 EXPOSE 3333
 
 
@@ -93,18 +93,18 @@ MANIPULAÇÃO DOS DADOS COM SEQUELIZE
 
  - NÃO UTILIZAMOS SQL (NA MAIORIA DAS VEZEs UTILIZAMOS APENAS CÓDIGO JS)
 
- 
+
  Exemplo:
 
 
 SQL NORMAL
 
- INSERT INTO users(name, email) 
+ INSERT INTO users(name, email)
  VALUES(
 
    "Daniel Vieira"
    "daniel@email.com"
-   
+
    )
 
 
@@ -120,7 +120,7 @@ User.create({
 
 
 
-MIGRATIONS 
+MIGRATIONS
 
 
 É um controle de versão para a base de dados, ou seja, é uma forma  de manter o nosso banco de dados atualizados entre todo o time de desenvolvimento e entre o desenvolvimento e a produção.
@@ -186,7 +186,7 @@ IMPORTANTE: DEPOIS QUE A MIGRATION SAI DO NOSSO AMBIENTE DE DESENVOLVIMENTO E VA
 
 
 
-SEEDS -  
+SEEDS -
 
 
  - Populam a base de dados para desenvolviemtno.
@@ -250,6 +250,297 @@ QUANDO CRIAR UM NOVO CONTROLLER
  update() {} //alterar usuário
 
  delete() {} remover usuário
+
+
+
+
+
+
+
+
+======================== PASSO-A-PASSO REALIZADO PARA CRIAR A CONEXÃO COM O BANCO POSTGRES =============
+
+
+0 - ANTES DE QUALQUER COISA CRIAR UMA ESTRUTURA DE PASTAS PARA ARMAZENAR AS CONFIGURAÇÕES DA APLICAÇÃO DE DO BANCO DE DADOS:
+
+
+   - dentro da pasta SRC criamos uma pasta chamada config e dentro da pasta config criamos um arquivo chamado database.js. Nessa pasta ficaraá armazenada a maioria das configurações da nossa aplicação. - O arquivo database.js contem as instruções para a aplicação se conectar ao nosso banco de dados. Para isso acontecer, precisamos exportar um objeto com as seguintes configurações:
+
+    module.exports = {
+      dialect: NOME DO SGBD - MYSQL, POSTEGRESS, MARIADB, ETC,
+      host: ENDEREÇO EM QUE SE ENCONTRA O BANCO,
+      username: USUÁRIO UTILIZADO PARA SE CONECTAR NO BANCO,
+      password: SENHA PARA SE AUTENTICAR NO BACO,
+      database: NOME DO BANCO DE DADOS,
+      define: {
+        OPCIONAL - PODE SER USADO PARA DEFINIR CONFIGURAÇÕES ADICIONAIS, COMO TIMESTAMPS E UNEDRSCORED(QUE SERVE PARA ACEITAR _ NO NOME DAS TABELAS)
+        imestamps: true,
+        underscored: true,
+        underscoredAll: true,
+      },
+  };
+
+
+  -  dentro da pasta SRC criamos uma pasta chamada database e dentro da pasta database criamos uma pasta chamada migrations. A pasta database será responsável por amarmazenar tudo o que for relacionado ao banco de dados, fora  a configuração de conexão que deverá ser feita dentro da pasta config. A pasta migrations ficará responsável por armazenar toda à lógica de interação com o banco de dados (CREATE, UPDATE, INSERT, DELETE, SELECT, ETC).
+
+
+ - ainda dentro da pasta SRC criamos uma pasta chamada app. Dentro dessa pasta criaremos uma pasta chamada model e outra chamada controller. Na pasta app ficará a maioria do código que envolve regra de negócio, lógica ou qualquer outro tipo de regra da nossa aplicação.
+
+
+1 - Após isso, instalamos as dependencias do sequelize:
+
+   - yarn add sequelize
+   - yarn add sequelize-cli -D
+
+
+
+
+2 - Criamos o arquivo .sequelizerc. Esse arquivo serve para identificarmos o caminho que a aplicação deverá percorrer do momento de uma requisição de cadastro até a conclusão e registro com o banco de dados. Para fazer isso importamos o método resolve do pacote path. O resolve cria o caminho absoluto para as pastas desejadas, precisamos apenas informar entre stings e separando por virgulas o nome das pastas que queremos interligar.
+
+
+EX.:
+
+const { resolve } = require('path')
+
+module.exports = {
+  config: resolve(__dirname, 'src', 'config', 'database.js'), //src/config/database.js
+  'models-path': resolve(__dirname, 'src', 'app', 'models'),
+  'migrations-path': resolve(__dirname, 'src', 'database', 'migrations'),
+  'seeders-path': resolve(__dirname, 'src', 'seeds', 'migrations'),
+
+}
+
+
+3 - abrimos o terminal integrado do vscode e executamos o comando yarn sequelize migration:create --name=create-users. Esse comando cria um arquivo dentro  da pasta migrations com 2 métodos: UP e Down. O método UP é utilizado para realizar uma ação inicial dentro do banco de dados. O método down é utilizado para armazenar o rollback caso algo de errado.
+
+dentro do método UP, começamos a definir o que vai ser feito no banco de dados com aquela migration. no exemplo abaixo, utilizamos o método UP para criar uma tabela de usuários através do queryInterface.createTable('users')
+
+
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('users', {
+      id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      email: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      password_hash: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      provider: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+      },
+      created_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      updated_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+    });
+  },
+
+  down: async (queryInterface) => {
+    await queryInterface.dropTable('users');
+  },
+};
+
+
+4 - após criar a lógica da migration, executamos o comando yarn sequelize db:migrate. Esse comando roda a migrate e insere a lógica no banco de dados (no caso do exemplo anterior cria uma tabela user).
+
+
+
+5 - depois de criar a migration, precisamos criar o nosso model de usuários, para conseguirmos manipular os dados no banco.
+
+ - dentro da pasta models criamos um arquivo chamado Users.js
+
+
+ OBS: por convenção é recomendável utilizar a primeira letra maiuscula ná hora de criar models.
+
+
+ - dentro do arquivo users.js importamos o Model do sequelize, da seguinte forma:
+
+  import {Model} from 'sequelize;
+
+
+ - criamos uma classe User que extende o Model:
+
+  class User extends Model
+
+
+ - dentro do model definimos um método estático chamado init(sequelize). Esse método é chamado automáticamente com o sequelize.
+
+ class User extends Mode {
+   static.init(sequelize)
+ }
+
+
+  - após criarmos o método static,  chamamos a classe pai  através de super.init(),
+
+
+  class User extends Mode {
+    static.init(sequelize){
+      super.init()
+    }
+  }
+
+
+ - como primeiro parametro do método super.init, iremos passar através de um objeto as colunas  que teremos dentro da nossa base de dados. Nesa etapa, podemos ignorar tudo o que for chave primária, chave estrangeira e também timestamps. Colocaremos apenas as colunas que realmente serão cadastradas pelo usuário. Para fazer isso precisamos importar também  o Sequelize de dentro do pacote 'sequelize'. Esse Sequelize importado passaremos como segundo parametro do método super.init().
+
+
+ No final de todo o processo, exportamos a classe User para utilizá-la em  etapas futuras.
+
+ import Sequelize,  {Model} from 'sequelize;
+
+
+
+eX.:
+
+
+import { Sequelize, Model } from 'sequelize';
+
+class User extends Model {
+  static init(sequelize) {
+    super.init(
+      {
+        name: Sequelize.STRING,
+        email: Sequelize.STRING,
+        password_hash: Sequelize.STRING,
+        provider: Sequelize.BOOLEAN,
+      },
+      {
+        sequelize,
+      }
+    );
+  }
+}
+
+export default User;
+
+
+
+6 - depois de criar o model, precisamos criar um arquivo que vai realizar a conexão com o nosso banco de dados definido lá no config - database.js e também fazer com que esse arquivo carregue todos os models que existirem na aplicação, para que todo o nosso sistema conheca os models.  A conexão do banco de dados será feita da seguinte forma:
+
+
+ - dentro da pasta database, criamos um arquivo chamado index.js (esse é o arquivo responsável por tudo)
+
+
+  - dentro do arquivo importamos o sequelize.
+
+   - criamos uma classe chamada Database
+
+    - criamos um método chamado constructor() - esse método será responsável por
+
+
+     - criamos um método chamado init() - esse método será responsável por  fazer a conexão com a base de dados e exportar os nossos módulos.
+
+
+   -dentro do constructor chamados o próprio método init()
+
+   EX.: constructor(){
+     this.init
+   }
+
+
+    - dentro do método init  instanciamos uma variável connection, que recebe new Sequelize().
+
+    EX.: init(){
+      this.connection = new Sequelize()
+    }
+
+
+     - após fazer isso precisamos importar a nossa configuração do banco de dados, que está lá na pasta config:
+
+
+     import databaseConfig from '../config/database';
+
+
+
+   - passamos o databaseConfig como parametro  da variável this.connection.
+
+
+   Ex.:  this.connection = new Sequelize(databaseConfig);
+
+  Dessa forma, o this.connection passa a ter a conexão com a base de dados.
+
+
+
+ depois disso, precisamos fazer com que o nosso arquivo de conexão acesse todos os models que tivermos na aplicação. Para isso, iremos importar dentro do nosso arquivo index.js TODOS os models que tivermos na nossa aplicação, e salvá-los dentro de um array.
+
+
+ Ex.:
+
+
+ import User from '../app/models/user';
+
+ const models = [User]
+
+
+
+
+depois disso (dentro do init), iremos percorrer este array,  e chamar todos os métodos init dentro de cada model que tivermos,, passando a nossa começão como parametro, da seguinte forma.
+
+
+
+
+init() {
+  this.connection = new Sequelize(databaseConfig);
+
+  models.map(model => model.init(this.connection));
+
+}
+
+
+export default new Database;
+
+
+
+
+Depois de criar o nosso arquivo de conexão com o banco, precisamos chamar esse arquivo em algum lugar. Para isso podemos ir no nosso app.js e importálo lá (lembre-se que o app é o arquivo em que configuramos o nosso servidor, middlewares e rotas).
+
+
+import './database';
+
+
+
+Após fazer isso podemos ir nas nossas rotas e realizar um teste para ver se a conexão com o banco está funcionando. Para isso, importamos o nosso model nas rotas (lembrando que depois isso irá para o controller) e criamos uma rota get para cadastro dos dados. Lembre-se que o processo de cadastro no banco é assincrono, então temos que usar async / await.
+
+
+
+
+routes.get('/', asyn(req, res) =>{
+  const user = await User.creae({
+    name: 'Daniel Vieira',
+    email: 'daniel@mail.com',
+    password_hash: '1234567678,
+  });
+
+  return res.json(user);
+})
+
+
+depois disso é só iniciar o servidor e entrar no local host para ver se o usuário vai ser cadastrado.
+
+
+
+
+
+
+=========================== AULA 11 - CADASTRANDO UM USUÁRIO =======================
 
 
 
