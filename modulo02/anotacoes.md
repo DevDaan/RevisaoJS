@@ -540,7 +540,40 @@ depois disso é só iniciar o servidor e entrar no local host para ver se o usu�
 
 
 
-=========================== AULA 11 - CADASTRANDO UM USUÁRIO =======================
+=========================== JWT ===========================
+
+
+Jason Web Token - é uma forma de autenticação que utilizamos em API'S Rest's
+
+
+
+POST http://api.com/sessions
+
+
+{
+  email: daniel@mail.com
+  password: 123456
+}
+
+
+ - vai até o banco  e verifica se tudo está correto
+
+
+  - se tudo estiver ok gera um token jwt (geramos o token através de uma biblioteca).
+
+
+
+  cada parte do token tem um significado:
+
+   - Headers (primeira parte do código, vai até o primeiro ponto) - são informações que definem qual que é o tipo de token que fora gerado.
+
+
+   - Payload (segunda parte do hash, vai do primeiro ponto até o segundo) - contem informações do usuário (não podemos armazenar informações sensíveis) para depois utilizarmos ela de alguma forma.
+
+
+
+    - Assinatura do Token - é o que garante que o token não foi modificado externamente por um outro usuário.
+
 
 
 
